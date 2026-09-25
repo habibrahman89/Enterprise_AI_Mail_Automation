@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Cloud Storage - Enterprise AI Mail Automation{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1><i class="bi bi-cloud"></i> Cloud Storage</h1>
+        <p>Manage your Google Drive documents and generate AI summaries.</p>
+    </div>
+</div>
+
+<div class="card panel-card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h4 class="mb-1"><i class="bi bi-google"></i> Google Drive</h4>
+                <div class="text-muted" style="font-size:14px">
+                    Application User: <strong>{{ user.username }}</strong>
+                </div>
+            </div>
+
+            {% if google_connected %}
+                <span class="status-badge status-connected">
+                    <i class="bi bi-check-circle-fill"></i> Connected
+                </span>
+            {% else %}
+                <span class="status-badge status-disconnected">
+                    <i class="bi bi-x-circle-fill"></i> Not Connected
+                </span>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        {% if google_connected %}
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted">Connected and ready to browse your Drive files.</span>
+                <a href="{{ url_for('google_disconnect') }}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-plug"></i> Disconnect
+                </a>
+            </div>
+        {% else %}
+            <a href="{{ url_for('google_login') }}" class="btn btn-primary">
+                <i class="bi bi-google"></i> Connect Google Drive
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if google_connected %}
+
+<div class="card panel-card mb-4">
+    <div class="card-body">
+        <form method="get" action="{{ url_for('cloud_storage') }}">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" value="{{ search }}" class="form-control" placeholder="Search Google Drive files...">
+                <button class="btn btn-primary">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card panel-card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-folder2-open"></i> My Drive</h4>
+            <span class="badge text-bg-light">{{ files|length }} files</span>
+        </div>
+
+        {% if files %}
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr><th>File</th><th style="width:120px">Type</th><th style="width:160px">Modified</th><th class="text-end" style="width:220px">Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td style="max-width:320px">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="font-size:25px; flex-shrink:0">
+                                    {% if 'folder' in file.mimeType %}📁
+                                    {% elif 'pdf' in file.mimeType %}📕
+                                    {% elif 'document' in file.mimeType or file.name.lower().endswith('.docx') %}📘
+                                    {% elif 'spreadsheet' in file.mimeType or file.name.lower().endswith('.xlsx') %}📊
+                                    {% elif 'presentation' in file.mimeType or file.name.lower().endswith('.pptx') %}📙
+                                    {% else %}📄
+                                    {% endif %}
+                                </div>
+                                <div style="min-width:0">
+                                    {% if file.webViewLink %}
+                                    <a href="{{ file.webViewLink }}" target="_blank" rel="noopener"
+                                       class="fw-semibold text-decoration-none d-block text-truncate" title="{{ file.name }}">
+                                        {{ file.name }}
+                                    </a>
+                                    {% else %}
+                                    <div class="fw-semibold text-truncate" title="{{ file.name }}">{{ file.name }}</div>
+                                    {% endif %}
+                                    <div class="text-muted text-truncate" style="font-size:12px">{{ file.mimeType }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if 'google-apps.document' in file.mimeType %}Google Doc
+                            {% elif 'google-apps.spreadsheet' in file.mimeType %}Google Sheet
+                            {% elif 'google-apps.presentation' in file.mimeType %}Google Slides
+                            {% else %}{{ file.name.split('.')[-1]|upper if '.' in file.name else 'FILE' }}
+                            {% endif %}
+                        </td>
+                        <td>{{ file.modifiedTime|replace('T',' ')|replace('Z','') }}</td>
+                        <td class="text-end">
+                            <div class="btn-group">
+                                {% if file.webViewLink %}
+                                <a href="{{ file.webViewLink }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-box-arrow-up-right"></i> Open
+                                </a>
+                                {% endif %}
+                                <form method="post" action="{{ url_for('summarize_drive_file', file_id=file.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-stars"></i> Summarize
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-cloud-slash"></i>
+            <h5>No files found</h5>
+            <p>Your Google Drive does not contain matching files.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}

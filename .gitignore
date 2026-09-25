@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+mail_ai.db
+credentials.json
+token.json
+outlook_token_cache.json
+instance/

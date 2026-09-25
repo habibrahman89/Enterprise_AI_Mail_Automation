@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Settings - Enterprise AI Mail Automation{% endblock %}
+{% block content %}
+
+<h2 class="mb-3">Settings</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3">
+            <b>Your Mailboxes</b>
+            <h4>{{ mail_account_count }} connected</h4>
+            <a href="{{ url_for('mail_accounts_page') }}" class="small">Manage mail accounts &rarr;</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <b>Groq</b>
+            <h4>{{'Configured' if groq else 'Missing'}}</h4>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <b>Scheduler</b>
+            <h4>{{'Enabled' if scheduler else 'Disabled'}}</h4>
+        </div>
+    </div>
+</div>
+
+{% if all_users is not none %}
+<div class="card panel-card mb-4">
+    <div class="card-body">
+        <h4 class="mb-3"><i class="bi bi-people"></i> User Accounts (admin)</h4>
+
+        <div class="table-responsive mb-4">
+            <table class="table align-middle">
+                <thead>
+                    <tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                    {% for u in all_users %}
+                    <tr>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email or '-' }}</td>
+                        <td>{% if u.is_admin %}<span class="badge text-bg-dark">Admin</span>{% else %}<span class="badge text-bg-secondary">User</span>{% endif %}</td>
+                        <td>{% if u.active %}<span class="badge text-bg-success">Active</span>{% else %}<span class="badge text-bg-danger">Disabled</span>{% endif %}</td>
+                        <td>{{ u.created_at.strftime('%Y-%m-%d') if u.created_at else '' }}</td>
+                        <td class="text-end">
+                            {% if u.id != current_user.id %}
+                            <div class="d-flex justify-content-end gap-2">
+                                <form method="post" action="{{ url_for('admin_toggle_admin', id=u.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                        {{ 'Revoke admin' if u.is_admin else 'Make admin' }}
+                                    </button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin_toggle_active', id=u.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm {{ 'btn-outline-danger' if u.active else 'btn-outline-success' }}">
+                                        {{ 'Deactivate' if u.active else 'Activate' }}
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">(you)</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h5 class="mb-3">Create a new account</h5>
+        <form method="post" action="{{ url_for('admin_create_user') }}" class="row g-2 align-items-end">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="col-md-3">
+                <label class="form-label small">Username</label>
+                <input class="form-control" name="username" required maxlength="120">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Email (optional)</label>
+                <input class="form-control" name="email" type="email" maxlength="255">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Password</label>
+                <input class="form-control" name="password" type="password" required minlength="8">
+            </div>
+            <div class="col-md-2">
+                <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" name="is_admin" id="isAdminCheck">
+                    <label class="form-check-label" for="isAdminCheck">Admin</label>
+                </div>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary w-100">Add</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<div class="card p-4">
+    <h5>Phase 3 implemented</h5>
+    <ul>
+        <li>Multi-user accounts, each with their own connected mailbox</li>
+        <li>Gmail/Outlook connectors and pagination</li>
+        <li>Threads and search</li>
+        <li>PDF/DOCX/PPTX/XLSX/TXT/CSV extraction</li>
+        <li>Optional OCR</li>
+        <li>Groq strict structured analysis</li>
+        <li>Bulk AI processing</li>
+        <li>AI reply drafts with human approval</li>
+        <li>Tasks/follow-ups</li>
+        <li>Vendor register</li>
+        <li>Automation rules engine</li>
+        <li>Audit log (admin only)</li>
+        <li>Background synchronization</li>
+    </ul>
+</div>
+{% endblock %}

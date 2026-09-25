@@ -1,0 +1,53 @@
+{% extends 'base.html' %}{% block content %}<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2>Enterprise Mail Dashboard</h2><small>Sync → AI triage → task → human-approved reply</small>
+    </div>
+    <div class="d-flex gap-2">{% if mail_accounts %}<a class="btn btn-primary" href="{{url_for('sync',scope='inbox',limit=100)}}">Sync Inbox
+            100</a><a class="btn btn-outline-primary" href="{{url_for('sync',scope='all',limit=500)}}">Sync Received
+            500</a>{% else %}<a class="btn btn-primary" href="{{url_for('mail_accounts_page')}}"><i class="bi bi-envelope-plus"></i> Connect a mailbox</a>{% endif %}</div>
+</div>
+{% if not mail_accounts %}
+<div class="alert alert-info d-flex align-items-center gap-2">
+    <i class="bi bi-info-circle"></i>
+    <div>You haven't connected a mailbox yet. <a href="{{url_for('mail_accounts_page')}}">Connect Gmail or Outlook</a> to start syncing your mail.</div>
+</div>
+{% endif %}
+<div class="row g-3 mb-4">{% for k,v in stats.items() %}<div class="col-6 col-xl">
+        <div class="card p-3"><small>{{k|upper}}</small>
+            <div class="fs-3 fw-bold">{{v}}</div>
+        </div>
+    </div>{% endfor %}</div>
+<div class="card p-3 mb-3">
+    <form method="post" action="{{url_for('bulk')}}" class="d-flex gap-2"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input class="form-control"
+            style="max-width:120px" type="number" name="limit" value="20" min="1" max="100"><button
+            class="btn btn-dark">Analyze Unprocessed with Groq</button></form>
+</div>
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Sender</th>
+                    <th>Subject</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Risk</th>
+                    <th>Action</th>
+                    <th>Received</th>
+                </tr>
+            </thead>
+            <tbody>{% for e in emails %}<tr data-href="{{url_for('email_view',id=e.id)}}"
+                    style="cursor:pointer">
+                    <td>{{e.sender|truncate(30)}}</td>
+                    <td>{{e.subject|truncate(50)}}</td>
+                    <td>{{e.category}}</td>
+                    <td><span class="badge badge-{{e.priority}}">{{e.priority}}</span></td>
+                    <td>{{e.risk_level}}</td>
+                    <td>{{'YES' if e.action_required else '-'}}</td>
+                    <td>{{e.received_at}}</td>
+                </tr>{% else %}<tr>
+                    <td colspan="7" class="text-center py-5">No mail synchronized.</td>
+                </tr>{% endfor %}</tbody>
+        </table>
+    </div>
+</div>{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Create Account - Enterprise AI Mail Automation{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card p-4">
+            <h3>Create your account</h3>
+            <p class="text-muted">You'll connect your own Gmail or Outlook mailbox after signing up.</p>
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input class="form-control mb-3" name="username" placeholder="Username" required autofocus maxlength="120">
+                <input class="form-control mb-3" name="email" type="email" placeholder="Email (optional)" maxlength="255">
+                <input class="form-control mb-3" name="password" type="password" placeholder="Password (min. 8 characters)" required minlength="8">
+                <input class="form-control mb-3" name="confirm_password" type="password" placeholder="Confirm password" required minlength="8">
+                <button class="btn btn-primary w-100">Create Account</button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('login') }}">Already have an account? Sign in</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
