@@ -219,3 +219,9 @@ services/
 templates/                  All HTML pages (Jinja2 + Bootstrap)
 static/js/app.js            Small helper script (row navigation, confirm dialogs)
 ```
+
+## Author
+
+Habib Rahman
+
+Enterprise AI Mail Automation
